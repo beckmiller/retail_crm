@@ -1,9 +1,7 @@
 from django.contrib import admin
-from django.contrib import messages
-from django.core.exceptions import ValidationError
 
+from products.models import Acceptance
 from .models import Store, Transaction
-from django.db import models
 
 
 @admin.register(Store)
@@ -20,23 +18,10 @@ class TransactionAdmin(admin.ModelAdmin):
     search_fields = ('product__name', 'stock__name', 'store__name')
     list_per_page = 20
     ordering = ('-date',)
+    raw_id_fields = ('stock',)
 
-    def save_model(self, request, obj, form, change):
-        # Проверка доступного количества товара на складе
-        if obj.stock:
-            available_quantity = obj.stock.acceptance.filter(product=obj.product).aggregate(models.Sum('quantity'))[
-                                     'quantity__sum'] or 0
-            if obj.quantity > available_quantity:
-                messages.error(request, 'Недостаточное количество товара на складе. Транзакция не сохранена.')
-                return
-
-        # Сохранение модели транзакции
-        super().save_model(request, obj, form, change)
-
-        # Обновление количества товара на складе
-        if obj.stock:
-            obj.stock.acceptance.filter(product=obj.product).update(quantity=models.F('quantity') - obj.quantity)
-
-        # Обновление количества товара в магазине
-        if obj.store:
-            obj.store.transaction_set.filter(product=obj.product).update(quantity=models.F('quantity') + obj.quantity)
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'product':
+            # Отображение всех партий товара в выборе
+            kwargs['queryset'] = Acceptance.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

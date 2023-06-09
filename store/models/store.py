@@ -14,11 +14,14 @@ class Store(models.Model):
 
 
 class Transaction(models.Model):
-    stock = models.ForeignKey('stock.Stock', on_delete=models.CASCADE, verbose_name="Склад")
-    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, verbose_name="Товар")
-    store = models.ForeignKey('Store', on_delete=models.CASCADE, verbose_name="Магазин")
-    quantity = models.PositiveIntegerField(verbose_name="Количество")
-    date = models.DateField(auto_now_add=True, verbose_name="Дата транзакции")
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, verbose_name="Товар",
+                                related_name='transaction_set_product')
+    stock = models.ForeignKey('stock.Stock', on_delete=models.CASCADE, verbose_name="Склад",
+                              related_name='transaction_set_stock')
+    store = models.ForeignKey('store.Store', on_delete=models.CASCADE, verbose_name="Магазин",
+                              related_name='transaction_set_store')
+    quantity = models.PositiveIntegerField(verbose_name="Количество", null=True)
+    date = models.DateField(auto_now_add=True, verbose_name="Дата транзакции", null=True)
 
     def __str__(self):
         return f"{self.product} - {self.stock} - {self.store}"

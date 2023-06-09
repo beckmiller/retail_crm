@@ -15,15 +15,17 @@ class Product(models.Model):
 
 
 class Acceptance(models.Model):
-    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, verbose_name="Товар")
-    supplier = models.ForeignKey('supplier.Supplier', on_delete=models.CASCADE, verbose_name="Поставщик", null=True)
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, verbose_name="Товар",
+                                related_name='acceptance_set_product')
+    supplier = models.ForeignKey('supplier.Supplier', on_delete=models.CASCADE, verbose_name="Поставщик", null=True,
+                                 related_name='acceptance_set_supplier')
+    stock = models.ForeignKey('stock.Stock', on_delete=models.CASCADE, null=True, related_name='acceptance_set_stock',
+                              verbose_name='Склад')
+
     price_in = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена захода", null=True)
     price_out = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена продажи", null=True)
     quantity = models.IntegerField(default=0, verbose_name="Количество")
     entry_time = models.DateTimeField(auto_now_add=True, verbose_name="Время захода")
-    stock = models.ForeignKey('stock.Stock', on_delete=models.CASCADE,
-                              null=True,
-                              related_name='acceptance', verbose_name='Склад')
 
     def __str__(self):
         return f"{self.product.name} - Приемка {self.id}"
